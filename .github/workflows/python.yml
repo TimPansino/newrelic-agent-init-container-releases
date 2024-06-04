@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: check-modified-files
     # run only if Python-related files were modified
-    if: needs.check-modified-files.outputs.files-changed == 'true'
+    if: needs.check-modified-files.outputs.files-changed == 'true' || github.event_name == 'workflow_dispatch' || (github.event_name == 'release' && endsWith(github.ref_name, '_python'))
 
     steps:
       - name: Checkout code
