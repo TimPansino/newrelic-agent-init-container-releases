@@ -38,15 +38,6 @@ env:
   K8S_OPERATOR_IMAGE_TAG: edge
 
 jobs:
-  check-license-key:
-    name: Check secret is accessible
-    runs-on: ubuntu-latest
-    steps:
-      - name: Test
-        run: |
-          NEW_RELIC_LICENSE_KEY="${{ secrets.NEW_RELIC_LICENSE_KEY }}"
-          echo ${#NEW_RELIC_LICENSE_KEY}
-
   check-modified-files:
     name: Check whether any Node-related files were modified, skip the test job if not
     uses: ./.github/workflows/check-modified-files.yml
@@ -58,15 +49,11 @@ jobs:
 
   call-test:
     uses: ./.github/workflows/test.yml
+    secrets: inherit
     with:
       RUNTIME_VERSION: ${{ matrix.node-version }}
       INITCONTAINER_LANGUAGE: nodejs
       K8S_OPERATOR_IMAGE_TAG: edge
-    secrets: inherit
-    # secrets:
-    #   NEW_RELIC_ACCOUNT_ID: "${{ secrets.NEW_RELIC_ACCOUNT_ID }}"
-    #   NEW_RELIC_API_KEY: "${{ secrets.NEW_RELIC_API_KEY }}"
-    #   NEW_RELIC_LICENSE_KEY: "${{ secrets.NEW_RELIC_LICENSE_KEY }}"
 
   call-publish:
     if: github.event_name == 'release' && endsWith(github.ref, '_nodejs') # Skip everything if this isn't Node
