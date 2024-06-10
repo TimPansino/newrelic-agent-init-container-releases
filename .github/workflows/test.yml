@@ -21,8 +21,9 @@ on:
         required: true
         type: string
       K8S_OPERATOR_IMAGE_TAG:
-        required: true
+        required: false
         type: string
+        default: edge
       INITCONTAINER_BUILD_ARGS:
         required: false
         type: string

@@ -48,8 +48,9 @@ jobs:
     secrets: inherit
     uses: ./.github/workflows/test.yml
     with:
-      RUNTIME_VERSION: ${{ matrix.node-version }}
       INITCONTAINER_LANGUAGE: nodejs
+      INITCONTAINER_BUILD_ARGS: RUNTIME_VERSION=${{ matrix.node-version }}
+      TEST_APP_BUILD_ARGS: RUNTIME_VERSION=${{ matrix.node-version }}
 
   call-publish:
     if: github.event_name == 'release' && endsWith(github.ref, '_nodejs') # Skip everything if this isn't Node
