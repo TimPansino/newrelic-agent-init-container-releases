@@ -15,6 +15,10 @@
 
 name: "NodeJs Init Container CI"
 
+concurrency:
+  group: ${{ github.ref_name || github.ref || github.run_id }}-${{ github.workflow }}
+  cancel-in-progress: true
+
 on:
   pull_request:
     paths:
