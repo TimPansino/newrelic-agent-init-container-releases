@@ -42,6 +42,12 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Extract Agent Version from Release Tag
+        id: version
+        if: github.event_name == 'release'
+        run: |
+          echo AGENT_VERSION=$(echo "${{ github.ref_name }}" | sed -e "s/^v//g" -e "s/_[a-zA-Z]*//g" -e "s/\.[0-9]*$//g") | tee -a ${GITHUB_ENV}
+
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # 3.3.0
@@ -71,6 +77,7 @@ jobs:
         run: |
           BUILD_ARGS=${{ inputs.INITCONTAINER_BUILD_ARGS }}
           if [[ -n "${BUILD_ARGS}" ]]; then BUILD_ARGS="--build-opt=build-arg=${BUILD_ARGS}"; fi
+          if [[ -n "${{ env.AGENT_VERSION }}" ]]; then BUILD_ARGS="${BUILD_ARGS} --build-opt=build-arg=AGENT_VERSION=${{ env.AGENT_VERSION }}"
           minikube image build -t e2e/newrelic-${{ inputs.INITCONTAINER_LANGUAGE }}-init:e2e src/${{ inputs.INITCONTAINER_LANGUAGE }}/ ${BUILD_ARGS}
 
       - name: Build test app container
