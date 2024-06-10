@@ -45,7 +45,7 @@ runs:
                         tags+=("type=raw,value=${sliced_version},priority=${tag_priority}")
                     fi
                 else
-                    tags+=("type=raw,value=${sliced_version}-${tag_suffix},priority=$(( tag_priority - 10 ))")
+                    tags+=("type=raw,value=${sliced_version},priority=${tag_priority}")
                 fi
             fi
         }
