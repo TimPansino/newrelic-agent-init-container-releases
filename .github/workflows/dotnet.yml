@@ -68,7 +68,7 @@ jobs:
     with:
       INITCONTAINER_LANGUAGE: dotnet
       K8S_OPERATOR_IMAGE_TAG: edge
-      TEST_APP_BUILD_ARGS: --build-opt=build-arg=TARGETARCH=amd64
+      TEST_APP_BUILD_ARGS: TARGETARCH=amd64
 
   publish:
     runs-on: ubuntu-latest
