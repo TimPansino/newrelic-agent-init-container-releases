@@ -94,7 +94,6 @@ jobs:
           INITCONTAINER_LANGUAGE: ${{ env.INITCONTAINER_LANGUAGE }}
           K8S_OPERATOR_IMAGE_TAG: ${{ env.K8S_OPERATOR_IMAGE_TAG }}
           NEW_RELIC_AGENT_VERSION: ${{ env.NEW_RELIC_AGENT_VERSION }}
-          AGENT_VERSION_TAG: ${{steps.version.output.agent_version}}
+          AGENT_VERSION_TAG: ${{ steps.version.output.agent_version }}
           RUNTIME_VERSION: ${{ matrix.node-version }}
           DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-

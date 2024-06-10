@@ -77,8 +77,8 @@ function startServer () {
     })
 
     return new Promise((resolve) => {
-        external.listen(8000, 'localhost', function () {
-            server.listen(8001, 'localhost', function () {
+        external.listen(8000, '0.0.0.0', function () {
+            server.listen(8001, '0.0.0.0', function () {
                 // The transaction doesn't get created until after the instrumented
                 // server handler fires.
                 resolve()
