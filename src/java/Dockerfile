@@ -2,7 +2,7 @@
 #  - Download the newrelic java agent jar file to `/newrelic-agent.jar` using the java-agent-download.sh.
 #    This is required as when instrumenting the pod, one init container will be created to copy the jar to your app's container.
 #  - Grant the necessary access to the jar. `chmod -R go+r /newrelic-agent.jar`
-FROM debian:bullseye AS build
+FROM busybox:1.34
 
 # Copy shell script to image
 COPY java-agent-download.sh /
@@ -15,8 +15,3 @@ RUN /java-agent-download.sh $AGENT_VERSION
 RUN rm /java-agent-download.sh
 # Set executable permissions on Java agent jar file
 RUN chmod -R go+r /newrelic-agent.jar
-
-FROM busybox
-
-# Grab downloaded jar file from builder
-COPY --from=build /newrelic-agent.jar /newrelic-agent.jar
