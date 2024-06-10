@@ -70,13 +70,13 @@ jobs:
       - name: Build init container
         run: |
           BUILD_ARGS=${{ inputs.INITCONTAINER_BUILD_ARGS }}
-          if [[ -n "${BUILD_ARGS}" ]]; then BUILD_ARGS="--build-opt=build-arg='${BUILD_ARGS}'"; fi
+          if [[ -n "${BUILD_ARGS}" ]]; then BUILD_ARGS="--build-opt=build-arg=${BUILD_ARGS}"; fi
           minikube image build -t e2e/newrelic-${{ inputs.INITCONTAINER_LANGUAGE }}-init:e2e src/${{ inputs.INITCONTAINER_LANGUAGE }}/ ${BUILD_ARGS}
 
       - name: Build test app container
         run: |
           BUILD_ARGS=${{ inputs.TEST_APP_BUILD_ARGS }}
-          if [[ -n "${BUILD_ARGS}" ]]; then BUILD_ARGS="--build-opt=build-arg='${BUILD_ARGS}'"; fi
+          if [[ -n "${BUILD_ARGS}" ]]; then BUILD_ARGS="--build-opt=build-arg=${BUILD_ARGS}"; fi
           minikube image build -t e2e/test-app-${{ inputs.INITCONTAINER_LANGUAGE }}:e2e tests/${{ inputs.INITCONTAINER_LANGUAGE }}/ ${BUILD_ARGS}
 
       - name: Run e2e-test
