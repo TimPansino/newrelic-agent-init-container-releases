@@ -1,42 +1,24 @@
 name: 'Extract Agent Version Tags'
 description: 'Extract agent version into tags for use with the Docker Metadata action.'
+
+inputs:
+  tag_suffix:
+    description: "Suffix to append to all version tags. (string with no preceding -)"
+    required: false
+  is_default_suffix:
+    description: "Boolean indicating if both suffixed and non-suffixed tags should be produced. (true|false)"
+    required: false
+
 outputs:
+  tags:
+    description: "Docker image tags formatted as input to docker/metadata-action"
+    value: ${{ steps.version.outputs.tags }}
+  container_version:
+    description: "Full container including build number"
+    value: ${{ steps.version.outputs.container_version }}
   agent_version:
-    description: "Agent version from container version by removing container build number"
+    description: "Agent version parsed from container version by removing container build number"
     value: ${{ steps.version.outputs.agent_version }}
-  full:
-    description: "Full container version"
-    value: ${{ steps.version.outputs.full }}
-  major:
-    description: "Sliced agent version up through major"
-    value: ${{ steps.version.outputs.major }}
-  major_enabled:
-    description: "Enabled flag for tag created from major version"
-    value: ${{ steps.version.outputs.major_enabled }}
-  minor:
-    description: "Sliced agent version up through minor"
-    value: ${{ steps.version.outputs.minor }}
-  minor_enabled:
-    description: "Enabled flag for tag created from minor version"
-    value: ${{ steps.version.outputs.minor_enabled }}
-  patch:
-    description: "Sliced agent version up through patch"
-    value: ${{ steps.version.outputs.patch }}
-  patch_enabled:
-    description: "Enabled flag for tag created from patch version"
-    value: ${{ steps.version.outputs.patch_enabled }}
-  build:
-    description: "Sliced agent version up through build"
-    value: ${{ steps.version.outputs.build }}
-  build_enabled:
-    description: "Enabled flag for tag created from build version"
-    value: ${{ steps.version.outputs.build_enabled }}
-  subbuild:
-    description: "Sliced agent version up through subbuild"
-    value: ${{ steps.version.outputs.subbuild }}
-  subbuild_enabled:
-    description: "Enabled flag for tag created from subbuild version"
-    value: ${{ steps.version.outputs.subbuild_enabled }}
 
 runs:
   using: "composite"
@@ -45,22 +27,26 @@ runs:
       id: version
       shell: bash
       run: |
+        # Grab inputs
+        release_tag=${{ github.ref_name }}
+        tag_suffix=${{ inputs.tag_suffix }}
+        is_default_suffix=${{ inputs.is_default_suffix }}
+
+        tags=()
         version_array=()
-        version_names=("full" "major" "minor" "patch" "build" "subbuild")
-        add_outputs_for_version_len() {
+        add_tags_for_version_len() {
             version_len=$1
-            version_name="${version_names[version_len]}"
-            if [[ version_len -gt ${#version_array[@]} ]]; then
-                output ${version_name} ''
-                output ${version_name}_enabled false
-            else
-                if [[ ${version_len} -ne 0 ]]; then
-                    sliced_version=$(echo ${version_array[@]:0:${version_len}} | sed "s/ /./g")
+            tag_priority=$(( 1015 - ${version_len} ))
+            if [[ ${version_len} -le ${#version_array[@]} ]]; then
+                sliced_version=$(echo ${version_array[@]:0:${version_len}} | sed "s/ /./g")
+                if [[ -n ${tag_suffix} ]]; then
+                    tags+=("type=raw,value=${sliced_version}-${tag_suffix},priority=$(( tag_priority - 10 ))")
+                    if [[ ${is_default_suffix} == "true" ]]; then
+                        tags+=("type=raw,value=${sliced_version},priority=${tag_priority}")
+                    fi
                 else
-                    sliced_version=$(echo ${version_array[@]} | sed "s/ /./g")
+                    tags+=("type=raw,value=${sliced_version}-${tag_suffix},priority=$(( tag_priority - 10 ))")
                 fi
-                output ${version_name} ${sliced_version}
-                output ${version_name}_enabled true
             fi
         }
 
@@ -69,14 +55,28 @@ runs:
         }
 
         # Get container version from release tag by removing v prefix and language suffix
-        release_tag=${{ github.ref_name }}
         container_version=$(echo ${release_tag} | sed -e "s/^v//g" -e "s/_[a-zA-Z]*//g")
 
         # Split agent version to array
         IFS="$IFS."; for i in ${container_version}; do version_array+=($i); done; IFS="${IFS:0:3}"
 
-        # Add version outputs for each version length
-        for i in {0..5}; do add_outputs_for_version_len $i; done
+        # Add tags for each version length
+        for i in {1..5}; do add_tags_for_version_len $i; done
+
+        # Add latest tags
+        if [[ -n ${tag_suffix} ]]; then
+            tags+=("type=raw,value=${tag_suffix},priority=1020")
+            if [[ ${is_default_suffix} == "true" ]]; then
+                tags+=("type=raw,value=latest,priority=1021")
+            fi
+        else
+            tags+=("type=raw,value=latest,priority=1020")
+        fi
+
+        # Output tags as multiline env var
+        formatted_tags=$(echo ${tags[@]} | sed "s/ /\n/g")
+        output tags "\"${formatted_tags}\""
 
         # Agent version strips the last build number off the end
         output agent_version $(echo ${version_array[@]:0:$((${#version_array[@]} - 1))} | sed "s/ /./g")
+        output container_version $container_version
