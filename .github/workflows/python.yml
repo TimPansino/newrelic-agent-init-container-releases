@@ -37,6 +37,7 @@ on:
 
 jobs:
   call-test:
+    if: github.event_name != 'release' || (github.event_name == 'release' && endsWith(github.ref, '_python')) # Skip everything if this isn't Python
     uses: ./.github/workflows/test.yml
     secrets: inherit
     with:

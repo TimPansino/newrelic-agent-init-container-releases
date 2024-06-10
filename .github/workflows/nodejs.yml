@@ -40,27 +40,27 @@ env:
 
 jobs:
   call-test:
+    if: github.event_name != 'release' || (github.event_name == 'release' && endsWith(github.ref, '_nodejs')) # Skip everything if this isn't Node
+    secrets: inherit
+    uses: ./.github/workflows/test.yml
     strategy:
       fail-fast: false
       matrix:
         node-version: [16, 18, 20]
-    secrets: inherit
-    uses: ./.github/workflows/test.yml
     with:
       INITCONTAINER_LANGUAGE: nodejs
       INITCONTAINER_BUILD_ARGS: RUNTIME_VERSION=${{ matrix.node-version }}
       TEST_APP_BUILD_ARGS: RUNTIME_VERSION=${{ matrix.node-version }}
 
-  call-publish:    
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [16, 18, 20]
-
+  call-publish:
     if: github.event_name == 'release' && endsWith(github.ref, '_nodejs') # Skip everything if this isn't Node
     needs: call-test
     uses: ./.github/workflows/publish.yml
     secrets: inherit
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [16, 18, 20]
     with:
       INITCONTAINER_LANGUAGE: nodejs
       DOCKER_IMAGE_TAG_SUFFIX: nodejs${{ matrix.node-version }}x
