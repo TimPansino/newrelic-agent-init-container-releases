@@ -74,8 +74,11 @@ runs:
         fi
 
         # Output tags as multiline env var
-        formatted_tags=$(echo ${tags[@]} | sed "s/ /\n/g")
-        output tags "\"${formatted_tags}\""
+        {
+            echo "tags<<EOF"
+            for tag in ${tags[@]}; do echo "${tag}"; done
+            echo "EOF"
+        } | tee -a $GITHUB_OUTPUT
 
         # Agent version strips the last build number off the end
         output agent_version $(echo ${version_array[@]:0:$((${#version_array[@]} - 1))} | sed "s/ /./g")
