@@ -44,7 +44,6 @@ jobs:
     secrets: inherit
     with:
       INITCONTAINER_LANGUAGE: python
-      K8S_OPERATOR_IMAGE_TAG: edge
 
   # call-publish:
   #   if: github.event_name == 'release' && endsWith(github.ref, '_python') # Skip everything if this isn't Node
