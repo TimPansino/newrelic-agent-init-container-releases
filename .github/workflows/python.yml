@@ -19,10 +19,12 @@ on:
   pull_request:
     paths:
       - 'src/python/**'
+      - 'tests/python/**'
       - '.github/workflows/python.yml'
   push:
     paths:
-      - 'python/**'
+      - 'src/python/**'
+      - 'tests/python/**'
       - '.github/workflows/python.yml'
     branches:
       - main
@@ -37,15 +39,6 @@ env:
   K8S_OPERATOR_IMAGE_TAG: edge
 
 jobs:
-  check-modified-files:
-    name: Check whether any Node-related files were modified, skip the test job if not
-    uses: ./.github/workflows/check-modified-files.yml
-    secrets: inherit
-    permissions:
-      contents: read
-    with:
-      agent-language: nodejs
-
   call-test:
     uses: ./.github/workflows/test.yml
     secrets: inherit
