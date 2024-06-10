@@ -44,7 +44,6 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [16, 18, 20]
-        agent-version: ['latest']
     secrets: inherit
     uses: ./.github/workflows/test.yml
     with:
@@ -52,44 +51,19 @@ jobs:
       INITCONTAINER_BUILD_ARGS: RUNTIME_VERSION=${{ matrix.node-version }}
       TEST_APP_BUILD_ARGS: RUNTIME_VERSION=${{ matrix.node-version }}
 
-  call-publish:
-    if: github.event_name == 'release' && endsWith(github.ref, '_nodejs') # Skip everything if this isn't Node
-    runs-on: ubuntu-latest
-    needs:
-      - call-test
-
+  call-publish:    
     strategy:
       fail-fast: false
       matrix:
         node-version: [16, 18, 20]
-        agent-version: ['latest']
 
-    steps:
-      - uses: actions/setup-node@v4
-      - name: Get agent version
-        run: |
-          if [[ ${{ matrix.agent-version }} == 'latest' ]]; then
-            cd nodejs && npm i newrelic@${{ matrix.agent-version }} && cd ..
-            echo AGENT_VERSION=$(cat nodejs/package.json | jq -r '.dependencies."newrelic"') >> $GITHUB_ENV 
-          elif 
-            echo AGENT_VERSION=${{ matrix.agent-version }} >> $GITHUB_ENV 
-          fi
-
-      - name: Format Agent Version
-        id: version
-        run: |
-          agent_version=${{ env.AGENT_VERSION }}  # Use output
-          echo NEW_RELIC_AGENT_VERSION=${{ env.AGENT_VERSION }} >> $GITHUB_ENV # Make ure to send the agent version to the dockerfile
-          agent_version=${agent_version##v}  # Remove v prefix
-          agent_version=${agent_version%%_${{ env.INITCONTAINER_LANGUAGE }}}  # Remove language suffix
-          agent_version=${agent_version}}_nodejs${{ matrix.node-version }}x  # Add Node runtime
-          echo "agent_version=${agent_version}" | tee -a "$GITHUB_OUTPUT"
-
-      - name: Call Publish Workflow for ${{ matrix.node-version }}
-        uses: ./.github/workflows/publish.yml
-        with:
-          INITCONTAINER_LANGUAGE: ${{ env.INITCONTAINER_LANGUAGE }}
-          NEW_RELIC_AGENT_VERSION: ${{ env.NEW_RELIC_AGENT_VERSION }}
-          AGENT_VERSION_TAG: ${{ steps.version.output.agent_version }}
-          RUNTIME_VERSION: ${{ matrix.node-version }}
-          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+    if: github.event_name == 'release' && endsWith(github.ref, '_nodejs') # Skip everything if this isn't Node
+    needs: call-test
+    uses: ./.github/workflows/publish.yml
+    secrets: inherit
+    with:
+      INITCONTAINER_LANGUAGE: nodejs
+      DOCKER_IMAGE_TAG_SUFFIX: nodejs${{ matrix.node-version }}x
+      DOCKER_IMAGE_TAG_IS_DEFAULT_SUFFIX: ${{ matrix.node-version == 20 }}
+      BUILD_ARGS: |
+        RUNTIME_VERSION=${{ matrix.node-version }}

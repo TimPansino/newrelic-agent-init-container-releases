@@ -28,6 +28,16 @@ on:
         required: false
         type: string
         default: ""
+      DOCKER_IMAGE_TAG_SUFFIX:
+        description: "Suffix to append to all version tags. (string with no preceding -)"
+        required: false
+        type: string
+        default: ""
+      DOCKER_IMAGE_TAG_IS_DEFAULT_SUFFIX:
+        description: "Boolean indicating if both suffixed and non-suffixed tags should be produced. (true|false)"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   publish:
@@ -50,6 +60,9 @@ jobs:
       - name: Extract Agent Version Tags
         id: version
         uses: ./.github/actions/extract_agent_version_tags
+        with:
+          tag_suffix: ${{ inputs.DOCKER_IMAGE_TAG_SUFFIX }}
+          is_default_suffix: ${{ inputs.DOCKER_IMAGE_TAG_IS_DEFAULT_SUFFIX }}
 
       - name: Generate Docker metadata (tags and labels)
         id: meta
