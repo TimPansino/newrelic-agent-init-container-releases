@@ -35,10 +35,6 @@ on:
     types:
       - published
 
-env:
-  K8S_OPERATOR_IMAGE_TAG: edge
-  AGENT_VERSION_LENGTH: 3
-
 jobs:
   call-test:
     uses: ./.github/workflows/test.yml
