@@ -10,8 +10,8 @@ WORKDIR /operator-build
 ADD Gemfile .
 
 # Set agent version in Gemfile
-ARG AGENT_VERSION
-RUN if [[ -n "${AGENT_VERSION}" ]]; then sed -i Gemfile "s/gem 'newrelic_rpm'/gem 'newrelic_rpm' ~> ${AGENT_VERSION}/g"
+ARG AGENT_VERSION=">=0"
+RUN sed -i Gemfile -e "s/gem 'newrelic_rpm'/gem 'newrelic_rpm', '${AGENT_VERSION}'/g"
 
 # Install agent
 RUN BUNDLE_PATH=workspace bundle install
@@ -32,3 +32,4 @@ RUN chmod -R go+r /instrumentation
 
 # Clean up build artifacts
 RUN rm -rf /operator-build
+WORKDIR /
