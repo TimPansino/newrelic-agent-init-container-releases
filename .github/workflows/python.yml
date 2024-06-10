@@ -48,6 +48,7 @@ jobs:
 
   call-publish:
     if: github.event_name == 'release' && endsWith(github.ref, '_python') # Skip everything if this isn't Python
+    needs: call-test
     uses: ./.github/workflows/publish.yml
     secrets: inherit
     with:
