@@ -8,6 +8,12 @@ WORKDIR /operator-build
 
 # Install gems from Gemfile into the `workspace` directory
 ADD Gemfile .
+
+# Set agent version in Gemfile
+ARG AGENT_VERSION
+RUN if [[ -n "${AGENT_VERSION}" ]]; then sed -i Gemfile "s/gem 'newrelic_rpm'/gem 'newrelic_rpm' ~> ${AGENT_VERSION}/g"
+
+# Install agent
 RUN BUNDLE_PATH=workspace bundle install
 
 FROM busybox
