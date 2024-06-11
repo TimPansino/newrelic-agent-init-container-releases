@@ -3,6 +3,10 @@
 TARGETARCH=$1
 AGENT_VERSION=$2
 
+if [[ "${TARGETARCH}" == "arm" || "${TARGETARCH}" == "aarch" || "${TARGETARCH}" == "aarch64" ]]; then
+    TARGETARCH=arm64
+fi
+
 # If the input arg is empty...
 if [[ -z "$AGENT_VERSION" ]]; then
     # Download current .NET agent version if no argument is provided
