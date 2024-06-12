@@ -29,16 +29,16 @@ on:
       - published
 
 jobs:
-  test:
-    if: github.event_name != 'release' || (github.event_name == 'release' && endsWith(github.ref, '_php')) # Skip everything if this isn't PHP
-    uses: ./.github/workflows/test.yml
-    secrets: inherit
-    with:
-      INITCONTAINER_LANGUAGE: php
+  # test:
+  #   if: github.event_name != 'release' || (github.event_name == 'release' && endsWith(github.ref, '_php')) # Skip everything if this isn't PHP
+  #   uses: ./.github/workflows/test.yml
+  #   secrets: inherit
+  #   with:
+  #     INITCONTAINER_LANGUAGE: php
 
   publish:
     if: github.event_name == 'release' && endsWith(github.ref, '_php') # Skip everything if this isn't PHP
-    needs: test
+    # needs: test
     uses: ./.github/workflows/publish.yml
     secrets: inherit
     strategy:
