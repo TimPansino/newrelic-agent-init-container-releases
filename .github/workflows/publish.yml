@@ -21,7 +21,7 @@ on:
         description: "Name for the published docker image, defaults to newrelic/newrelic-${{ inputs.INITCONTAINER_LANGUAGE }}-init"
         required: false
         type: string
-        default: "newrelic/newrelic-${{ inputs.INITCONTAINER_LANGUAGE }}-init"
+        default: "ghcr.io/TimPansino/newrelic-${{ inputs.INITCONTAINER_LANGUAGE }}-init"
       DOCKER_IMAGE_TAG_SUFFIX:
         description: "Suffix to append to all version tags. (string with no preceding -)"
         required: false
@@ -73,8 +73,9 @@ jobs:
       - name: Login to Docker Hub Container Registry
         uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446 # 3.2.0
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and publish init container image
         uses: docker/build-push-action@c382f710d39a5bb4e430307530a720f50c2d3318 # 6.0.0
