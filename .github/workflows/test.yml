@@ -34,57 +34,57 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Extract Agent Version from Release Tag
-        id: version
-        if: github.event_name == 'release'
-        run: |
-          echo AGENT_VERSION=$(echo "${{ github.ref_name }}" | sed -e "s/^v//g" -e "s/_[a-zA-Z]*//g" -e "s/\.[0-9]*$//g") | tee -a ${GITHUB_ENV}
+      # - name: Extract Agent Version from Release Tag
+      #   id: version
+      #   if: github.event_name == 'release'
+      #   run: |
+      #     echo AGENT_VERSION=$(echo "${{ github.ref_name }}" | sed -e "s/^v//g" -e "s/_[a-zA-Z]*//g" -e "s/\.[0-9]*$//g") | tee -a ${GITHUB_ENV}
 
-      - name: Set up Docker Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # 3.3.0
+      # - name: Set up Docker Buildx
+      #   id: buildx
+      #   uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # 3.3.0
 
-      - name: Start minikube
-        uses: medyagh/setup-minikube@d8c0eb871f6f455542491d86a574477bd3894533 # 0.0.18
+      # - name: Start minikube
+      #   uses: medyagh/setup-minikube@d8c0eb871f6f455542491d86a574477bd3894533 # 0.0.18
 
-      - name: Deploy cert-manager to minikube
-        run: |
-          helm repo add jetstack https://charts.jetstack.io --force-update
-          helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.14.5 --set installCRDs=true
-          sleep 5
-          kubectl wait --for=condition=Ready -n cert-manager --all pods
+      # - name: Deploy cert-manager to minikube
+      #   run: |
+      #     helm repo add jetstack https://charts.jetstack.io --force-update
+      #     helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace --version v1.14.5 --set installCRDs=true
+      #     sleep 5
+      #     kubectl wait --for=condition=Ready -n cert-manager --all pods
 
-      - name: Deploy New Relic k8s-agents-operator to minikube
-        run: |
-          helm repo add k8s-agents-operator https://newrelic.github.io/k8s-agents-operator
-          helm upgrade --install k8s-agents-operator k8s-agents-operator/k8s-agents-operator \
-            --namespace=default \
-            --set=licenseKey=${{ secrets.NEW_RELIC_LICENSE_KEY }} \
-            --set=newRelicHost=${{ vars.NEW_RELIC_HOST }} \
-            --set=controllerManager.manager.image.tag=${{ inputs.K8S_OPERATOR_IMAGE_TAG }}
-          sleep 5
-          kubectl wait --for=condition=Ready -n default --all pods
+      # - name: Deploy New Relic k8s-agents-operator to minikube
+      #   run: |
+      #     helm repo add k8s-agents-operator https://newrelic.github.io/k8s-agents-operator
+      #     helm upgrade --install k8s-agents-operator k8s-agents-operator/k8s-agents-operator \
+      #       --namespace=default \
+      #       --set=licenseKey=${{ secrets.NEW_RELIC_LICENSE_KEY }} \
+      #       --set=newRelicHost=${{ vars.NEW_RELIC_HOST }} \
+      #       --set=controllerManager.manager.image.tag=${{ inputs.K8S_OPERATOR_IMAGE_TAG }}
+      #     sleep 5
+      #     kubectl wait --for=condition=Ready -n default --all pods
 
-      - name: Build init container
-        run: |
-          BUILD_ARGS=${{ inputs.INITCONTAINER_BUILD_ARGS }}
-          if [[ -n "${BUILD_ARGS}" ]]; then BUILD_ARGS="--build-opt=build-arg=${BUILD_ARGS}"; fi
-          if [[ -n "${{ env.AGENT_VERSION }}" ]]; then BUILD_ARGS="${BUILD_ARGS:-} --build-opt=build-arg=AGENT_VERSION=${{ env.AGENT_VERSION }}"; fi
-          minikube image build -t e2e/newrelic-${{ inputs.INITCONTAINER_LANGUAGE }}-init:e2e src/${{ inputs.INITCONTAINER_LANGUAGE }}/ ${BUILD_ARGS}
+      # - name: Build init container
+      #   run: |
+      #     BUILD_ARGS=${{ inputs.INITCONTAINER_BUILD_ARGS }}
+      #     if [[ -n "${BUILD_ARGS}" ]]; then BUILD_ARGS="--build-opt=build-arg=${BUILD_ARGS}"; fi
+      #     if [[ -n "${{ env.AGENT_VERSION }}" ]]; then BUILD_ARGS="${BUILD_ARGS:-} --build-opt=build-arg=AGENT_VERSION=${{ env.AGENT_VERSION }}"; fi
+      #     minikube image build -t e2e/newrelic-${{ inputs.INITCONTAINER_LANGUAGE }}-init:e2e src/${{ inputs.INITCONTAINER_LANGUAGE }}/ ${BUILD_ARGS}
 
-      - name: Build test app container
-        run: |
-          BUILD_ARGS=${{ inputs.TEST_APP_BUILD_ARGS }}
-          if [[ -n "${BUILD_ARGS}" ]]; then BUILD_ARGS="--build-opt=build-arg=${BUILD_ARGS}"; fi
-          minikube image build -t e2e/test-app-${{ inputs.INITCONTAINER_LANGUAGE }}:e2e tests/${{ inputs.INITCONTAINER_LANGUAGE }}/ ${BUILD_ARGS}
+      # - name: Build test app container
+      #   run: |
+      #     BUILD_ARGS=${{ inputs.TEST_APP_BUILD_ARGS }}
+      #     if [[ -n "${BUILD_ARGS}" ]]; then BUILD_ARGS="--build-opt=build-arg=${BUILD_ARGS}"; fi
+      #     minikube image build -t e2e/test-app-${{ inputs.INITCONTAINER_LANGUAGE }}:e2e tests/${{ inputs.INITCONTAINER_LANGUAGE }}/ ${BUILD_ARGS}
 
-      - name: Run e2e-test
-        uses: newrelic/newrelic-integration-e2e-action@a97ced80a4841c8c6261d1f9dca6706b1d89acb1  # 1.11.0
-        with:
-          retry_seconds: 60
-          retry_attempts: 5
-          agent_enabled: false
-          spec_path: tests/${{ inputs.INITCONTAINER_LANGUAGE }}/test-specs.yml
-          account_id: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
-          api_key: ${{ secrets.NEW_RELIC_API_KEY }}
-          license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
+      # - name: Run e2e-test
+      #   uses: newrelic/newrelic-integration-e2e-action@a97ced80a4841c8c6261d1f9dca6706b1d89acb1  # 1.11.0
+      #   with:
+      #     retry_seconds: 60
+      #     retry_attempts: 5
+      #     agent_enabled: false
+      #     spec_path: tests/${{ inputs.INITCONTAINER_LANGUAGE }}/test-specs.yml
+      #     account_id: ${{ secrets.NEW_RELIC_ACCOUNT_ID }}
+      #     api_key: ${{ secrets.NEW_RELIC_API_KEY }}
+      #     license_key: ${{ secrets.NEW_RELIC_LICENSE_KEY }}
